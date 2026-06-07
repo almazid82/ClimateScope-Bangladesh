@@ -10,7 +10,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from sklearn.ensemble import RandomForestClassifier
 from statsmodels.tsa.arima.model import ARIMA
 import streamlit as st
@@ -49,8 +48,11 @@ BASE_LAYOUT = dict(
 )
 
 def _ax(**extra):
-    """Return axis style dict merged with per-axis overrides."""
-    return dict(gridcolor=GRID, linecolor=GRID, zerolinecolor=GRID, **extra)
+    """Return axis style dict.  Uses dict.update so caller overrides don't
+    duplicate the base keys (which would raise TypeError on Python 3.14+)."""
+    base = {"gridcolor": GRID, "linecolor": GRID, "zerolinecolor": GRID}
+    base.update(extra)
+    return base
 
 
 # ── GLOBAL FUI CSS ────────────────────────────────────────────────────────────
@@ -456,45 +458,49 @@ def show_global_overview(master, giss, yr_range):
     with c4: kpi_card("CO₂ Increase",        f"{co2_pct:+.1f}%",       PURPLE)
     st.markdown("---")
 
-    # Dual-axis chart — xaxis/yaxis/yaxis2 all explicit, BASE_LAYOUT has none of them
+    # Dual-axis: plain go.Figure() so yaxis2 is never pre-configured by
+    # make_subplots — avoids Plotly 6.x _perform_update merge error.
     section("Bangladesh Temperature vs Global Anomaly")
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = go.Figure()
 
     fig.add_trace(go.Scatter(
         x=m_clean.Year, y=m_clean.BGD_Temp_C, name="Bangladesh Temp (°C)",
         mode="lines+markers", line=dict(color=BLUE, width=2.5), marker=dict(size=5),
-    ), secondary_y=False)
+        yaxis="y",
+    ))
     if len(m_clean) > 1:
         z1 = np.polyfit(m_clean.Year, m_clean.BGD_Temp_C, 1)
         fig.add_trace(go.Scatter(
             x=m_clean.Year, y=np.polyval(z1, m_clean.Year),
             name=f"BGD trend ({z1[0]:+.4f}°C/yr)", mode="lines",
-            line=dict(color=BLUE, width=1.5, dash="dash"),
-        ), secondary_y=False)
+            line=dict(color=BLUE, width=1.5, dash="dash"), yaxis="y",
+        ))
 
     fig.add_trace(go.Scatter(
         x=g.Year, y=g.Annual_Anomaly_C, name="Global Anomaly (°C)",
         mode="lines+markers", line=dict(color=RED, width=2.5), marker=dict(size=5),
-    ), secondary_y=True)
+        yaxis="y2",
+    ))
     if len(g) > 1:
         z2 = np.polyfit(g.Year, g.Annual_Anomaly_C, 1)
         fig.add_trace(go.Scatter(
             x=g.Year, y=np.polyval(z2, g.Year),
             name=f"Global trend ({z2[0]:+.4f}°C/yr)", mode="lines",
-            line=dict(color=RED, width=1.5, dash="dash"),
-        ), secondary_y=True)
+            line=dict(color=RED, width=1.5, dash="dash"), yaxis="y2",
+        ))
 
     fig.update_layout(
         **BASE_LAYOUT,
         height=430, hovermode="x unified",
         title="The South Asian Warming Hole: Bangladesh Cools While the World Warms",
         xaxis =_ax(),
-        yaxis =_ax(title="Bangladesh Temp (°C)",
-                   titlefont=dict(color=BLUE), tickfont=dict(color=BLUE)),
-        yaxis2=_ax(title="Global Temp Anomaly (°C)",
-                   titlefont=dict(color=RED), tickfont=dict(color=RED),
-                   overlaying="y", side="right",
-                   zeroline=True, zerolinecolor="rgba(120,120,120,0.35)"),
+        yaxis =_ax(title=dict(text="Bangladesh Temp (°C)", font=dict(color=BLUE)),
+                   tickfont=dict(color=BLUE)),
+        yaxis2=dict(title=dict(text="Global Temp Anomaly (°C)", font=dict(color=RED)),
+                    tickfont=dict(color=RED),
+                    overlaying="y", side="right",
+                    gridcolor="rgba(0,0,0,0)", zeroline=False,
+                    showline=False),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -562,25 +568,30 @@ def show_bangladesh_deep_dive(master, yr_range):
     st.markdown("---")
 
     section("Annual Temperature & Precipitation")
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=m.Year, y=m.BGD_Temp_C, name="Temperature (°C)",
         line=dict(color=RED, width=2.5), mode="lines+markers", marker=dict(size=5),
-    ), secondary_y=False)
+        yaxis="y",
+    ))
     fig.add_trace(go.Bar(
         x=m.Year, y=m.BGD_Precip_mm_day, name="Precipitation (mm/day)",
-        marker_color=BLUE, opacity=0.45,
-    ), secondary_y=True)
+        marker_color=BLUE, opacity=0.45, yaxis="y2",
+    ))
     fig.add_trace(go.Scatter(
         x=m.Year, y=m.BGD_Precip_mm_day.rolling(5, min_periods=1).mean(),
         name="5-yr precip mean", line=dict(color="#81d4fa", width=2, dash="dot"),
-    ), secondary_y=True)
+        yaxis="y2",
+    ))
     fig.update_layout(**BASE_LAYOUT, height=400, hovermode="x unified",
-                      xaxis=_ax(),
-                      yaxis =_ax(title="Temperature (°C)",       titlefont=dict(color=RED),  tickfont=dict(color=RED)),
-                      yaxis2=_ax(title="Precipitation (mm/day)", titlefont=dict(color=BLUE), tickfont=dict(color=BLUE),
-                                 overlaying="y", side="right"),
-                      title="Bangladesh Annual Temperature and Precipitation (1984–2023)")
+                      title="Bangladesh Annual Temperature and Precipitation (1984–2023)",
+                      xaxis =_ax(),
+                      yaxis =_ax(title=dict(text="Temperature (°C)",       font=dict(color=RED)),
+                                 tickfont=dict(color=RED)),
+                      yaxis2=dict(title=dict(text="Precipitation (mm/day)", font=dict(color=BLUE)),
+                                  tickfont=dict(color=BLUE),
+                                  overlaying="y", side="right",
+                                  gridcolor="rgba(0,0,0,0)", zeroline=False, showline=False))
     st.plotly_chart(fig, use_container_width=True)
 
     col1, col2 = st.columns(2)
