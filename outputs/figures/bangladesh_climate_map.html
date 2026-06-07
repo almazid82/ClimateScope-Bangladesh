@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_3272bf21c0fbf7e0625a9fe05fd673cc {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    <div style="position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background-color: white; padding: 10px 20px; border-radius: 8px; box-shadow: 2px 2px 6px rgba(0,0,0,0.3); font-family: Arial; font-size: 14px; font-weight: bold;"> ClimateScope Bangladesh — Climate Risk Map</div>
+    
+            <div class="folium-map" id="map_3272bf21c0fbf7e0625a9fe05fd673cc" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_3272bf21c0fbf7e0625a9fe05fd673cc = L.map(
+                "map_3272bf21c0fbf7e0625a9fe05fd673cc",
+                {
+                    center: [23.685, 90.356],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 7,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_765b924dd406790c133a826d1ada2163 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_765b924dd406790c133a826d1ada2163.addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+            var circle_marker_80850db5511929057fb43b9d7dbd2eca = L.circleMarker(
+                [23.8103, 90.4125],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_7358ada64c69af8af8035506959d2744 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_4aad3a1e3525e2df334d507db98e122e = $(`<div id="html_4aad3a1e3525e2df334d507db98e122e" style="width: 100.0%; height: 100.0%;"><b>Dhaka (Capital)</b><br><b>Climate Risk:</b> High — heat island + flooding<br><b>Coordinates:</b> 23.8103N, 90.4125E</div>`)[0];
+                popup_7358ada64c69af8af8035506959d2744.setContent(html_4aad3a1e3525e2df334d507db98e122e);
+            
+        
+
+        circle_marker_80850db5511929057fb43b9d7dbd2eca.bindPopup(popup_7358ada64c69af8af8035506959d2744)
+        ;
+
+        
+    
+    
+            circle_marker_80850db5511929057fb43b9d7dbd2eca.bindTooltip(
+                `<div>
+                     Dhaka (Capital)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_59996e3f32132b4c177b901bb5002484 = L.circleMarker(
+                [22.3569, 91.7832],
+                {"bubblingMouseEvents": true, "color": "darkred", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkred", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_d8160fc71dbfac87eec5908cb944ef25 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_d627367121c170a2a853f4be5c0f8ab6 = $(`<div id="html_d627367121c170a2a853f4be5c0f8ab6" style="width: 100.0%; height: 100.0%;"><b>Chittagong (Port)</b><br><b>Climate Risk:</b> Very High — coastal + cyclone<br><b>Coordinates:</b> 22.3569N, 91.7832E</div>`)[0];
+                popup_d8160fc71dbfac87eec5908cb944ef25.setContent(html_d627367121c170a2a853f4be5c0f8ab6);
+            
+        
+
+        circle_marker_59996e3f32132b4c177b901bb5002484.bindPopup(popup_d8160fc71dbfac87eec5908cb944ef25)
+        ;
+
+        
+    
+    
+            circle_marker_59996e3f32132b4c177b901bb5002484.bindTooltip(
+                `<div>
+                     Chittagong (Port)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_9b69eec26eb8cb25e6e55e7ebe9a3c18 = L.circleMarker(
+                [22.8456, 89.5403],
+                {"bubblingMouseEvents": true, "color": "darkred", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkred", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_26110f5d18a1241b7c3e0a972a78f22a = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_6d4d82c4855d9ca597bda8295b76f671 = $(`<div id="html_6d4d82c4855d9ca597bda8295b76f671" style="width: 100.0%; height: 100.0%;"><b>Khulna (Sundarbans)</b><br><b>Climate Risk:</b> Extreme — sea level + salinity<br><b>Coordinates:</b> 22.8456N, 89.5403E</div>`)[0];
+                popup_26110f5d18a1241b7c3e0a972a78f22a.setContent(html_6d4d82c4855d9ca597bda8295b76f671);
+            
+        
+
+        circle_marker_9b69eec26eb8cb25e6e55e7ebe9a3c18.bindPopup(popup_26110f5d18a1241b7c3e0a972a78f22a)
+        ;
+
+        
+    
+    
+            circle_marker_9b69eec26eb8cb25e6e55e7ebe9a3c18.bindTooltip(
+                `<div>
+                     Khulna (Sundarbans)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_2ea134fc77f2d0dd5a83550618ea8d05 = L.circleMarker(
+                [24.8949, 91.8687],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_9516e4d6ae5f0ed191472a817ff6ffa4 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_a9395bc9e16512e5681bf82d6c05b819 = $(`<div id="html_a9395bc9e16512e5681bf82d6c05b819" style="width: 100.0%; height: 100.0%;"><b>Sylhet (Haor basin)</b><br><b>Climate Risk:</b> High — flash flood prone<br><b>Coordinates:</b> 24.8949N, 91.8687E</div>`)[0];
+                popup_9516e4d6ae5f0ed191472a817ff6ffa4.setContent(html_a9395bc9e16512e5681bf82d6c05b819);
+            
+        
+
+        circle_marker_2ea134fc77f2d0dd5a83550618ea8d05.bindPopup(popup_9516e4d6ae5f0ed191472a817ff6ffa4)
+        ;
+
+        
+    
+    
+            circle_marker_2ea134fc77f2d0dd5a83550618ea8d05.bindTooltip(
+                `<div>
+                     Sylhet (Haor basin)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_2784140cc7293ae9841cb5db9d9fb4e2 = L.circleMarker(
+                [24.3745, 88.6042],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_54438a1ee86929a4ec8c510a9d8517af = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_9b162b4e4123738c15f9e4689da10221 = $(`<div id="html_9b162b4e4123738c15f9e4689da10221" style="width: 100.0%; height: 100.0%;"><b>Rajshahi (NW region)</b><br><b>Climate Risk:</b> Medium — drought risk<br><b>Coordinates:</b> 24.3745N, 88.6042E</div>`)[0];
+                popup_54438a1ee86929a4ec8c510a9d8517af.setContent(html_9b162b4e4123738c15f9e4689da10221);
+            
+        
+
+        circle_marker_2784140cc7293ae9841cb5db9d9fb4e2.bindPopup(popup_54438a1ee86929a4ec8c510a9d8517af)
+        ;
+
+        
+    
+    
+            circle_marker_2784140cc7293ae9841cb5db9d9fb4e2.bindTooltip(
+                `<div>
+                     Rajshahi (NW region)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_cd306513627fab23b5495f39c5c3a670 = L.circleMarker(
+                [22.701, 90.3535],
+                {"bubblingMouseEvents": true, "color": "darkred", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkred", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_5087f449b0601c41b0997c414864fcad = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_0542baa30342a3a5b67172667483e478 = $(`<div id="html_0542baa30342a3a5b67172667483e478" style="width: 100.0%; height: 100.0%;"><b>Barisal (Delta)</b><br><b>Climate Risk:</b> Extreme — river flooding<br><b>Coordinates:</b> 22.7010N, 90.3535E</div>`)[0];
+                popup_5087f449b0601c41b0997c414864fcad.setContent(html_0542baa30342a3a5b67172667483e478);
+            
+        
+
+        circle_marker_cd306513627fab23b5495f39c5c3a670.bindPopup(popup_5087f449b0601c41b0997c414864fcad)
+        ;
+
+        
+    
+    
+            circle_marker_cd306513627fab23b5495f39c5c3a670.bindTooltip(
+                `<div>
+                     Barisal (Delta)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_05d72c17414e9e760e96bd498c6368c1 = L.circleMarker(
+                [24.7471, 90.4203],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_b2044e66d9fe38c1141ac33615fc3735 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_c1991a6d90ab491481b84892986eb662 = $(`<div id="html_c1991a6d90ab491481b84892986eb662" style="width: 100.0%; height: 100.0%;"><b>Mymensingh (Brahmaputra)</b><br><b>Climate Risk:</b> High — riverbank erosion<br><b>Coordinates:</b> 24.7471N, 90.4203E</div>`)[0];
+                popup_b2044e66d9fe38c1141ac33615fc3735.setContent(html_c1991a6d90ab491481b84892986eb662);
+            
+        
+
+        circle_marker_05d72c17414e9e760e96bd498c6368c1.bindPopup(popup_b2044e66d9fe38c1141ac33615fc3735)
+        ;
+
+        
+    
+    
+            circle_marker_05d72c17414e9e760e96bd498c6368c1.bindTooltip(
+                `<div>
+                     Mymensingh (Brahmaputra)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d6a9521a921a138bdb8f105e893d820d = L.circleMarker(
+                [21.4272, 92.0058],
+                {"bubblingMouseEvents": true, "color": "darkred", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "darkred", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10, "stroke": true, "weight": 3}
+            ).addTo(map_3272bf21c0fbf7e0625a9fe05fd673cc);
+        
+    
+        var popup_8e159f5f2742c4effd735647c3890f51 = L.popup({
+  "maxWidth": 280,
+});
+
+        
+            
+                var html_18a07d68855d5dd4a986f360802be0b7 = $(`<div id="html_18a07d68855d5dd4a986f360802be0b7" style="width: 100.0%; height: 100.0%;"><b>Cox's Bazar (Coast)</b><br><b>Climate Risk:</b> Very High — storm surge + sea rise<br><b>Coordinates:</b> 21.4272N, 92.0058E</div>`)[0];
+                popup_8e159f5f2742c4effd735647c3890f51.setContent(html_18a07d68855d5dd4a986f360802be0b7);
+            
+        
+
+        circle_marker_d6a9521a921a138bdb8f105e893d820d.bindPopup(popup_8e159f5f2742c4effd735647c3890f51)
+        ;
+
+        
+    
+    
+            circle_marker_d6a9521a921a138bdb8f105e893d820d.bindTooltip(
+                `<div>
+                     Cox's Bazar (Coast)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>
