@@ -35,28 +35,29 @@ PURPLE = "#ab47bc"
 TEAL   = "#4dd0e1"
 GRID   = "#0d1f35"
 
-# NOTE: BASE_LAYOUT must NOT contain xaxis/yaxis when those are also passed as
-# explicit kwargs — duplicate keys cause TypeError at Python call site.
-# All update_layout calls use BASE_LAYOUT as positional dict1 (not **BASE_LAYOUT)
-# so Plotly's recursive merge handles any overlap cleanly.
+# BASE_LAYOUT intentionally omits xaxis/yaxis so every update_layout(**BASE_LAYOUT)
+# call can pass xaxis/yaxis as explicit kwargs without a duplicate-key TypeError or
+# Plotly internal merge error.  Axis grid styling is applied via _ax() helper below.
 BASE_LAYOUT = dict(
     paper_bgcolor="rgba(3,7,18,0.82)",
     plot_bgcolor ="rgba(3,7,18,0.82)",
     font=dict(color="#c8e0f0", family="'Share Tech Mono', 'Courier New', monospace"),
-    xaxis=dict(gridcolor=GRID, linecolor=GRID, zerolinecolor=GRID),
-    yaxis=dict(gridcolor=GRID, linecolor=GRID, zerolinecolor=GRID),
     legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor=GRID, borderwidth=1,
                 font=dict(size=11)),
     margin=dict(l=55, r=35, t=55, b=45),
     hoverlabel=dict(bgcolor="#001832", bordercolor=CYAN, font=dict(size=12)),
 )
 
+def _ax(**extra):
+    """Return axis style dict merged with per-axis overrides."""
+    return dict(gridcolor=GRID, linecolor=GRID, zerolinecolor=GRID, **extra)
+
+
 # ── GLOBAL FUI CSS ────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
 
-/* ═══ BASE ═══ */
 [data-testid="stAppViewContainer"] {
     background: #030712;
     background-image:
@@ -67,7 +68,6 @@ html, body, * { box-sizing: border-box; }
 html, body { font-family: 'Rajdhani', sans-serif; }
 section[data-testid="stMain"] .block-container { padding-top: 1.5rem; }
 
-/* ═══ SIDEBAR ═══ */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, rgba(2,6,18,0.98) 0%, rgba(3,10,25,0.98) 100%) !important;
     border-right: 1px solid rgba(0,245,255,0.14) !important;
@@ -76,15 +76,9 @@ section[data-testid="stMain"] .block-container { padding-top: 1.5rem; }
 [data-testid="stSidebar"] * { color: #a0cce0 !important; font-family: 'Rajdhani', sans-serif !important; }
 [data-testid="stSidebar"] strong { color: #c8e8ff !important; }
 [data-testid="stSidebar"] hr { border-color: rgba(0,245,255,0.10) !important; margin: 0.75rem 0 !important; }
-[data-testid="stSidebar"] small, [data-testid="stSidebar"] .stCaption p {
-    color: #405868 !important; font-size: 0.72rem !important; letter-spacing: 0.05em;
-}
 
-/* ── Sidebar nav radio buttons → FUI pill nav ── */
 div[data-testid="stSidebar"] div[role="radiogroup"] {
-    gap: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
+    gap: 0 !important; display: flex !important; flex-direction: column !important;
 }
 div[data-testid="stSidebar"] div[role="radiogroup"] > label {
     padding: 10px 14px !important;
@@ -98,8 +92,6 @@ div[data-testid="stSidebar"] div[role="radiogroup"] > label {
     font-weight: 500 !important;
     letter-spacing: 0.04em !important;
     cursor: pointer !important;
-    position: relative !important;
-    overflow: hidden !important;
 }
 div[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
     background: rgba(0,245,255,0.06) !important;
@@ -113,17 +105,10 @@ div[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
     box-shadow: inset 3px 0 0 rgba(0,245,255,0.75), 0 0 18px rgba(0,245,255,0.07) !important;
     font-weight: 600 !important;
 }
-/* Hide the radio circle dot */
 div[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
     display: none !important;
 }
 
-/* ── Sidebar slider ── */
-[data-testid="stSidebar"] [data-testid="stSlider"] {
-    padding: 0 4px;
-}
-
-/* ═══ HEADINGS ═══ */
 h1 {
     background: linear-gradient(92deg, #00f5ff 0%, #7ecff7 52%, #ddf0ff 100%);
     -webkit-background-clip: text !important;
@@ -133,11 +118,9 @@ h1 {
     font-weight: 700 !important;
     letter-spacing: 0.04em !important;
     margin-bottom: 0.05rem !important;
-    line-height: 1.2 !important;
 }
 h2, h3 { color: #c8e8ff !important; letter-spacing: 0.04em !important; }
 
-/* ═══ KPI CARDS ═══ */
 .kpi-box {
     background: linear-gradient(145deg, rgba(0,18,45,0.84), rgba(0,8,25,0.92));
     border: 1px solid rgba(0,245,255,0.30);
@@ -163,51 +146,30 @@ h2, h3 { color: #c8e8ff !important; letter-spacing: 0.04em !important; }
     top: 0; left: 12%; right: 12%; height: 1px;
     background: linear-gradient(90deg, transparent, rgba(0,245,255,0.62), transparent);
 }
-.kpi-box::after {
-    content: "";
-    position: absolute;
-    bottom: 0; left: 30%; right: 30%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,245,255,0.18), transparent);
-}
 .kpi-value {
-    font-size: 1.72rem;
-    font-weight: 700;
-    margin: 0;
+    font-size: 1.72rem; font-weight: 700; margin: 0;
     filter: drop-shadow(0 0 6px currentColor);
     letter-spacing: 0.02em;
     font-family: 'Share Tech Mono', monospace;
     line-height: 1;
 }
 .kpi-label {
-    font-size: 0.58rem;
-    color: #5a9ab8;
-    margin: 8px 0 0;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.58rem; color: #5a9ab8; margin: 8px 0 0;
+    letter-spacing: 0.16em; text-transform: uppercase;
 }
 
-/* ═══ SECTION HEADERS ═══ */
 .section-hdr {
     border-left: 3px solid #00f5ff;
-    padding-left: 12px;
-    margin: 24px 0 12px;
-    font-size: 0.84rem;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #a8d0e8;
-    text-shadow: 0 0 16px rgba(0,245,255,0.28);
+    padding-left: 12px; margin: 24px 0 12px;
+    font-size: 0.84rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: #a8d0e8; text-shadow: 0 0 16px rgba(0,245,255,0.28);
 }
 
-/* ═══ PLOTLY CHART WRAPPER ═══ */
 [data-testid="stPlotlyChart"] {
     border: 1px solid rgba(0,245,255,0.09);
-    border-radius: 10px;
-    background: rgba(3,8,22,0.52);
-    overflow: hidden;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.42);
-    backdrop-filter: blur(6px);
+    border-radius: 10px; background: rgba(3,8,22,0.52); overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.42); backdrop-filter: blur(6px);
     transition: box-shadow 0.28s ease, border-color 0.25s ease;
 }
 [data-testid="stPlotlyChart"]:hover {
@@ -215,29 +177,17 @@ h2, h3 { color: #c8e8ff !important; letter-spacing: 0.04em !important; }
     border-color: rgba(0,245,255,0.16) !important;
 }
 
-/* ═══ INFO / ALERT BOXES ═══ */
-.finding-box {
-    background: rgba(0,18,45,0.78);
-    border: 1px solid rgba(0,245,255,0.22);
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin-top: 12px;
-    backdrop-filter: blur(10px);
-}
 div[data-testid="stAlert"] {
     background: rgba(0,18,50,0.82) !important;
     border: 1px solid rgba(0,245,255,0.20) !important;
-    border-radius: 8px !important;
-    backdrop-filter: blur(10px) !important;
+    border-radius: 8px !important; backdrop-filter: blur(10px) !important;
     color: #90c0d8 !important;
 }
 
-/* ═══ MISC ═══ */
 hr { border-color: rgba(0,245,255,0.09) !important; margin: 1.5rem 0 !important; }
 details[data-testid="stExpander"] {
     background: rgba(0,12,35,0.75) !important;
-    border: 1px solid rgba(0,245,255,0.12) !important;
-    border-radius: 8px !important;
+    border: 1px solid rgba(0,245,255,0.12) !important; border-radius: 8px !important;
 }
 label { color: #a0cce0 !important; letter-spacing: 0.04em; }
 [data-testid="stDataFrame"] { border: 1px solid rgba(0,245,255,0.10); border-radius:8px; }
@@ -315,8 +265,6 @@ def load_giss() -> pd.DataFrame:
     return _synth_giss()
 
 
-# ── Synthetic fallbacks ───────────────────────────────────────────────────────
-
 def _synth_master() -> pd.DataFrame:
     rng = np.random.default_rng(42)
     yr = np.arange(1984, 2024);  t = yr - 1984;  n = len(yr)
@@ -368,7 +316,6 @@ def get_flood_model():
     df["Is_Monsoon"] = df["Month"].isin([6,7,8,9]).astype(int)
 
     mc = df.groupby("Month")[["Temperature_C","Precipitation_mm_day","Humidity_pct"]].transform("mean")
-
     df["Temp_anomaly"]    = df["Temperature_C"]        - mc["Temperature_C"]
     df["Precip_anomaly"]  = df["Precipitation_mm_day"] - mc["Precipitation_mm_day"]
     df["Humid_anomaly"]   = df["Humidity_pct"]         - mc["Humidity_pct"]
@@ -386,7 +333,6 @@ def get_flood_model():
              "Month","Is_Monsoon","Temp_anomaly","Precip_anomaly",
              "Humid_anomaly","Precip_3mo_roll","Precip_6mo_roll","Precip_lag1","Precip_lag2"]
     df = df[FEATS + ["Flood_Risk"]].dropna()
-
     model = RandomForestClassifier(n_estimators=300, class_weight="balanced",
                                    random_state=42, n_jobs=-1)
     model.fit(df[FEATS], df["Flood_Risk"])
@@ -434,14 +380,14 @@ def sidebar():
             <div style="font-size:2.4rem;line-height:1;margin-bottom:6px;
                         filter:drop-shadow(0 0 12px rgba(0,245,255,0.50));">🌍</div>
             <div style="color:#00f5ff;font-size:1.05rem;font-weight:700;
-                        letter-spacing:0.18em;margin:0;">CLIMATESCOPE</div>
+                        letter-spacing:0.18em;">CLIMATESCOPE</div>
             <div style="color:#304858;font-size:0.60rem;letter-spacing:0.14em;
-                        margin-top:3px;text-transform:uppercase;">Bangladesh · South Asia</div>
+                        margin-top:3px;">BANGLADESH · SOUTH ASIA</div>
         </div>
         """, unsafe_allow_html=True)
 
         page = st.radio(
-            "Navigate to",
+            "nav",
             ["🌍  Global Overview",
              "🇧🇩  Bangladesh Deep Dive",
              "🤖  ML Flood Risk Predictor",
@@ -453,33 +399,30 @@ def sidebar():
         yr_range = st.slider("Year range", 1984, 2023, (1984, 2023))
         st.markdown("---")
 
-        st.markdown("""
-        <div style="font-size:0.68rem;letter-spacing:0.06em;color:#304858;
-                    text-transform:uppercase;margin-bottom:8px;">Data Sources</div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div style="font-size:0.65rem;letter-spacing:0.08em;color:#304858;
+                    text-transform:uppercase;margin-bottom:6px;">Data Sources</div>""",
+                    unsafe_allow_html=True)
         for src in ["📡 NASA POWER API", "🌡 NASA GISS Surface Temp",
                     "🏦 World Bank Open Data", "🌊 CSIRO Sea Level"]:
             st.caption(src)
 
         st.markdown("---")
         st.markdown("""
-        <div style="font-size:0.70rem;color:#304858;line-height:1.6;text-align:center;">
+        <div style="font-size:0.68rem;color:#304858;line-height:1.7;text-align:center;">
             <span style="color:#506878;">Author</span><br>
-            <span style="color:#7aacc8;letter-spacing:0.05em;">Shamsul AL Mazid</span><br>
+            <span style="color:#7aacc8;letter-spacing:0.04em;">Shamsul AL Mazid</span><br>
             <a href="https://github.com/almazid82/ClimateScope-Bangladesh"
-               style="color:#00f5ff;text-decoration:none;font-size:0.65rem;">
+               style="color:#00f5ff;text-decoration:none;font-size:0.63rem;">
                ⬡ GitHub Repository ↗</a>
-        </div>
-        """, unsafe_allow_html=True)
+        </div>""", unsafe_allow_html=True)
 
-    # Map back from the display label (with extra space) to a clean name
-    page_map = {
-        "🌍  Global Overview":        "🌍 Global Overview",
-        "🇧🇩  Bangladesh Deep Dive":   "🇧🇩 Bangladesh Deep Dive",
-        "🤖  ML Flood Risk Predictor": "🤖 ML Flood Risk Predictor",
-        "📈  2024–2050 Forecast":      "📈 2024–2050 Forecast",
+    clean = {
+        "🌍  Global Overview":        "global",
+        "🇧🇩  Bangladesh Deep Dive":   "bangladesh",
+        "🤖  ML Flood Risk Predictor": "ml",
+        "📈  2024–2050 Forecast":      "forecast",
     }
-    return page_map.get(page, page), yr_range
+    return clean.get(page, "global"), yr_range
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -488,7 +431,6 @@ def sidebar():
 
 def show_global_overview(master, giss, yr_range):
     set_page_bg("global")
-
     st.title("🌍 Global Climate Overview")
     st.caption("Bangladesh local temperature vs the global anomaly — 1984 to 2023")
 
@@ -496,38 +438,32 @@ def show_global_overview(master, giss, yr_range):
     g = giss[(giss.Year >= yr_range[0]) & (giss.Year <= yr_range[1])].copy()
 
     m_clean = m.dropna(subset=["BGD_Temp_C"])
-    bgd_slope = np.polyfit(m_clean.Year, m_clean.BGD_Temp_C, 1)[0] if len(m_clean) > 1 else 0
-    glo_slope = np.polyfit(g.Year, g.Annual_Anomaly_C, 1)[0]       if len(g) > 1       else 0
+    bgd_slope = np.polyfit(m_clean.Year, m_clean.BGD_Temp_C, 1)[0] if len(m_clean) > 1 else 0.0
+    glo_slope = np.polyfit(g.Year, g.Annual_Anomaly_C, 1)[0]       if len(g) > 1       else 0.0
     divergence = (glo_slope - bgd_slope) * (yr_range[1] - yr_range[0])
 
-    # Safe CO2 numeric conversion
     co2_col = m.copy()
     co2_col["CO2_emissions"] = pd.to_numeric(co2_col["CO2_emissions"], errors="coerce")
     co2_col = co2_col.dropna(subset=["CO2_emissions"])
     first_co2 = float(co2_col["CO2_emissions"].iloc[0]) if len(co2_col) > 0 else 0
     last_co2  = float(co2_col["CO2_emissions"].iloc[-1]) if len(co2_col) > 0 else 0
-    co2_pct = ((last_co2 / first_co2) - 1) * 100 if first_co2 != 0 and len(co2_col) > 1 else 0.0
+    co2_pct   = ((last_co2 / first_co2) - 1) * 100 if first_co2 != 0 and len(co2_col) > 1 else 0.0
 
     c1, c2, c3, c4 = st.columns(4)
     with c1: kpi_card("BGD Warming Rate",    f"{bgd_slope:+.4f}°C/yr", BLUE)
     with c2: kpi_card("Global Warming Rate", f"{glo_slope:+.4f}°C/yr", RED)
     with c3: kpi_card("Total Divergence",    f"{divergence:+.2f}°C",   ORANGE)
     with c4: kpi_card("CO₂ Increase",        f"{co2_pct:+.1f}%",       PURPLE)
-
     st.markdown("---")
 
-    # ── Dual-axis temperature chart ───────────────────────────────────────────
-    # Pass BASE_LAYOUT as positional dict1 (not **BASE_LAYOUT) to avoid
-    # Python TypeError from duplicate 'yaxis' key when yaxis= is also explicit.
+    # Dual-axis chart — xaxis/yaxis/yaxis2 all explicit, BASE_LAYOUT has none of them
     section("Bangladesh Temperature vs Global Anomaly")
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(go.Scatter(
-        x=m_clean.Year, y=m_clean.BGD_Temp_C,
-        name="Bangladesh Temp (°C)", mode="lines+markers",
-        line=dict(color=BLUE, width=2.5), marker=dict(size=5),
+        x=m_clean.Year, y=m_clean.BGD_Temp_C, name="Bangladesh Temp (°C)",
+        mode="lines+markers", line=dict(color=BLUE, width=2.5), marker=dict(size=5),
     ), secondary_y=False)
-
     if len(m_clean) > 1:
         z1 = np.polyfit(m_clean.Year, m_clean.BGD_Temp_C, 1)
         fig.add_trace(go.Scatter(
@@ -537,11 +473,9 @@ def show_global_overview(master, giss, yr_range):
         ), secondary_y=False)
 
     fig.add_trace(go.Scatter(
-        x=g.Year, y=g.Annual_Anomaly_C,
-        name="Global Anomaly (°C)", mode="lines+markers",
-        line=dict(color=RED, width=2.5), marker=dict(size=5),
+        x=g.Year, y=g.Annual_Anomaly_C, name="Global Anomaly (°C)",
+        mode="lines+markers", line=dict(color=RED, width=2.5), marker=dict(size=5),
     ), secondary_y=True)
-
     if len(g) > 1:
         z2 = np.polyfit(g.Year, g.Annual_Anomaly_C, 1)
         fig.add_trace(go.Scatter(
@@ -551,20 +485,20 @@ def show_global_overview(master, giss, yr_range):
         ), secondary_y=True)
 
     fig.update_layout(
-        BASE_LAYOUT,                            # ← positional, no ** conflict
+        **BASE_LAYOUT,
         height=430, hovermode="x unified",
         title="The South Asian Warming Hole: Bangladesh Cools While the World Warms",
-        yaxis=dict(title="Bangladesh Temp (°C)", gridcolor=GRID,
+        xaxis =_ax(),
+        yaxis =_ax(title="Bangladesh Temp (°C)",
                    titlefont=dict(color=BLUE), tickfont=dict(color=BLUE)),
-        yaxis2=dict(title="Global Temp Anomaly (°C)", gridcolor=GRID,
-                    titlefont=dict(color=RED), tickfont=dict(color=RED),
-                    overlaying="y", side="right",
-                    zeroline=True, zerolinecolor="rgba(128,128,128,0.4)", zerolinewidth=1),
+        yaxis2=_ax(title="Global Temp Anomaly (°C)",
+                   titlefont=dict(color=RED), tickfont=dict(color=RED),
+                   overlaying="y", side="right",
+                   zeroline=True, zerolinecolor="rgba(120,120,120,0.35)"),
     )
     st.plotly_chart(fig, use_container_width=True)
 
     col1, col2 = st.columns(2)
-
     with col1:
         section("Bangladesh CO₂ Emissions")
         fig2 = go.Figure()
@@ -574,7 +508,8 @@ def show_global_overview(master, giss, yr_range):
             x=co2_col.Year, y=co2_col.CO2_emissions.rolling(5, min_periods=1).mean(),
             name="5-yr mean", line=dict(color=ORANGE, width=2.5),
         ))
-        fig2.update_layout(BASE_LAYOUT, height=320, yaxis_title="CO₂ (kt)")
+        fig2.update_layout(**BASE_LAYOUT, height=320,
+                           xaxis=_ax(), yaxis=_ax(title="CO₂ (kt)"))
         st.plotly_chart(fig2, use_container_width=True)
 
     with col2:
@@ -591,8 +526,8 @@ def show_global_overview(master, giss, yr_range):
                                       fill="tozeroy", fillcolor="rgba(239,83,80,0.09)",
                                       line=dict(color=RED, width=2.5)))
             fig3.add_hline(y=0, line_color="rgba(128,128,128,0.4)", line_dash="dot")
-            fig3.update_layout(BASE_LAYOUT, height=320,
-                               yaxis_title="Cumulative Change (°C)", hovermode="x unified")
+            fig3.update_layout(**BASE_LAYOUT, height=320, hovermode="x unified",
+                               xaxis=_ax(), yaxis=_ax(title="Cumulative Change (°C)"))
             st.plotly_chart(fig3, use_container_width=True)
 
     st.info(
@@ -610,12 +545,10 @@ def show_global_overview(master, giss, yr_range):
 
 def show_bangladesh_deep_dive(master, yr_range):
     set_page_bg("bangladesh")
-
     st.title("🇧🇩 Bangladesh Climate Deep Dive")
     st.caption("Temperature, precipitation, sea level, GDP and variable correlations")
 
     m = master[(master.Year >= yr_range[0]) & (master.Year <= yr_range[1])].copy()
-
     sl  = m.dropna(subset=["Sea_Level_mm"])
     gdp = m.dropna(subset=["GDP_per_capita_USD"])
     sl_change  = sl.Sea_Level_mm.iloc[-1]  - sl.Sea_Level_mm.iloc[0]  if len(sl)  > 1 else 0
@@ -626,7 +559,6 @@ def show_bangladesh_deep_dive(master, yr_range):
     with c2: kpi_card("Mean Precipitation", f"{m.BGD_Precip_mm_day.mean():.2f} mm/d", TEAL)
     with c3: kpi_card("Sea Level Change",   f"{sl_change:+.1f} mm",                   ORANGE)
     with c4: kpi_card("GDP/cap Growth",     f"{gdp_growth:+.0f}%",                    GREEN)
-
     st.markdown("---")
 
     section("Annual Temperature & Precipitation")
@@ -643,14 +575,15 @@ def show_bangladesh_deep_dive(master, yr_range):
         x=m.Year, y=m.BGD_Precip_mm_day.rolling(5, min_periods=1).mean(),
         name="5-yr precip mean", line=dict(color="#81d4fa", width=2, dash="dot"),
     ), secondary_y=True)
-    fig.update_layout(BASE_LAYOUT, height=400, hovermode="x unified",
+    fig.update_layout(**BASE_LAYOUT, height=400, hovermode="x unified",
+                      xaxis=_ax(),
+                      yaxis =_ax(title="Temperature (°C)",       titlefont=dict(color=RED),  tickfont=dict(color=RED)),
+                      yaxis2=_ax(title="Precipitation (mm/day)", titlefont=dict(color=BLUE), tickfont=dict(color=BLUE),
+                                 overlaying="y", side="right"),
                       title="Bangladesh Annual Temperature and Precipitation (1984–2023)")
-    fig.update_yaxes(title_text="Temperature (°C)",       secondary_y=False, color=RED)
-    fig.update_yaxes(title_text="Precipitation (mm/day)", secondary_y=True,  color=BLUE)
     st.plotly_chart(fig, use_container_width=True)
 
     col1, col2 = st.columns(2)
-
     with col1:
         section("Sea Level Rise Trend")
         sl_d = m.dropna(subset=["Sea_Level_mm"])
@@ -670,11 +603,11 @@ def show_bangladesh_deep_dive(master, yr_range):
                 line=dict(color=ORANGE, width=1.8, dash="dash"),
             ))
             fig2.add_trace(go.Scatter(
-                x=yr_fit, y=np.polyval(z2, yr_fit),
-                name="Quadratic (acceleration)",
+                x=yr_fit, y=np.polyval(z2, yr_fit), name="Quadratic (acceleration)",
                 line=dict(color=RED, width=1.8, dash="dot"),
             ))
-            fig2.update_layout(BASE_LAYOUT, height=330, yaxis_title="Sea Level (mm)")
+            fig2.update_layout(**BASE_LAYOUT, height=330,
+                               xaxis=_ax(), yaxis=_ax(title="Sea Level (mm)"))
             st.plotly_chart(fig2, use_container_width=True)
 
     with col2:
@@ -683,41 +616,32 @@ def show_bangladesh_deep_dive(master, yr_range):
         if len(gdp_d) > 1:
             fig3 = go.Figure()
             fig3.add_trace(go.Scatter(
-                x=gdp_d.Year, y=gdp_d.GDP_per_capita_USD,
-                name="GDP/capita (USD)", mode="lines+markers",
-                line=dict(color=GREEN, width=2.5),
+                x=gdp_d.Year, y=gdp_d.GDP_per_capita_USD, name="GDP/capita (USD)",
+                mode="lines+markers", line=dict(color=GREEN, width=2.5),
                 fill="tozeroy", fillcolor="rgba(57,255,20,0.07)",
             ))
-            fig3.update_layout(BASE_LAYOUT, height=330, yaxis_title="USD")
+            fig3.update_layout(**BASE_LAYOUT, height=330,
+                               xaxis=_ax(), yaxis=_ax(title="USD"))
             st.plotly_chart(fig3, use_container_width=True)
 
-    # ── Correlation heatmap ───────────────────────────────────────────────────
     section("Variable Correlation Heatmap")
     want = ["BGD_Temp_C","BGD_Precip_mm_day","BGD_Humidity_pct",
             "Annual_Anomaly_C","Sea_Level_mm","GDP_per_capita_USD","CO2_emissions"]
     cols = [c for c in want if c in m.columns]
     corr = m[cols].corr().round(3)
     labels = {
-        "BGD_Temp_C": "BGD Temp", "BGD_Precip_mm_day": "Precip",
-        "BGD_Humidity_pct": "Humidity", "Annual_Anomaly_C": "Global Anom",
-        "Sea_Level_mm": "Sea Level", "GDP_per_capita_USD": "GDP/cap", "CO2_emissions": "CO₂",
+        "BGD_Temp_C":"BGD Temp","BGD_Precip_mm_day":"Precip","BGD_Humidity_pct":"Humidity",
+        "Annual_Anomaly_C":"Global Anom","Sea_Level_mm":"Sea Level",
+        "GDP_per_capita_USD":"GDP/cap","CO2_emissions":"CO₂",
     }
-    display_cols = [labels.get(c, c) for c in cols]
-
+    dc = [labels.get(c, c) for c in cols]
     fig4 = go.Figure(go.Heatmap(
-        z=corr.values, x=display_cols, y=display_cols,
-        colorscale="RdBu_r", zmid=0, zmin=-1, zmax=1,
-        text=corr.values.round(2), texttemplate="%{text}",
-        textfont=dict(size=11),
+        z=corr.values, x=dc, y=dc, colorscale="RdBu_r", zmid=0, zmin=-1, zmax=1,
+        text=corr.values.round(2), texttemplate="%{text}", textfont=dict(size=11),
     ))
-    # Pass BASE_LAYOUT as dict1 to avoid xaxis/yaxis duplicate TypeError
-    fig4.update_layout(
-        BASE_LAYOUT,
-        height=420,
-        title="Pearson Correlation Matrix — Climate & Socioeconomic Variables",
-        xaxis=dict(tickangle=-30, gridcolor=GRID),
-        yaxis=dict(gridcolor=GRID),
-    )
+    fig4.update_layout(**BASE_LAYOUT, height=420,
+                       title="Pearson Correlation Matrix — Climate & Socioeconomic Variables",
+                       xaxis=_ax(tickangle=-30), yaxis=_ax())
     st.plotly_chart(fig4, use_container_width=True)
 
 
@@ -727,7 +651,6 @@ def show_bangladesh_deep_dive(master, yr_range):
 
 def show_ml_predictor():
     set_page_bg("ml")
-
     st.title("🤖 ML Flood Risk Predictor")
     st.caption("Random Forest (300 trees) trained on 480 months of NASA POWER data — Accuracy 95.8% · AUC 0.9947")
 
@@ -740,15 +663,14 @@ def show_ml_predictor():
     with col_inp:
         st.markdown("### Input Climate Conditions")
         month = st.selectbox("Month", range(1,13), format_func=lambda x: MONTHS[x-1], index=6)
-        temp  = st.slider("Temperature (°C)",           15.0, 35.0, 28.5, 0.1)
-        prec  = st.slider("Precipitation (mm/day)",      0.0, 20.0,  8.0, 0.1)
-        hum   = st.slider("Humidity (%)",               50.0,100.0, 82.0, 0.5)
-        lag1  = st.slider("Last month precip (mm/day)",  0.0, 20.0,  6.0, 0.1)
-        lag2  = st.slider("2 months ago precip (mm/day)",0.0, 20.0,  4.0, 0.1)
+        temp  = st.slider("Temperature (°C)",            15.0, 35.0, 28.5, 0.1)
+        prec  = st.slider("Precipitation (mm/day)",       0.0, 20.0,  8.0, 0.1)
+        hum   = st.slider("Humidity (%)",                50.0,100.0, 82.0, 0.5)
+        lag1  = st.slider("Last month precip (mm/day)",   0.0, 20.0,  6.0, 0.1)
+        lag2  = st.slider("2 months ago precip (mm/day)", 0.0, 20.0,  4.0, 0.1)
 
         is_monsoon = int(month in [6,7,8,9])
         prec_3mo   = (prec + lag1 + lag2) / 3
-        prec_6mo   = prec_3mo
         temp_anom  = temp - X_ref["Temperature_C"].mean()
         prec_anom  = prec - X_ref["Precipitation_mm_day"].mean()
         hum_anom   = hum  - X_ref["Humidity_pct"].mean()
@@ -757,7 +679,7 @@ def show_ml_predictor():
             "Temperature_C": temp, "Precipitation_mm_day": prec, "Humidity_pct": hum,
             "Month": month, "Is_Monsoon": is_monsoon,
             "Temp_anomaly": temp_anom, "Precip_anomaly": prec_anom, "Humid_anomaly": hum_anom,
-            "Precip_3mo_roll": prec_3mo, "Precip_6mo_roll": prec_6mo,
+            "Precip_3mo_roll": prec_3mo, "Precip_6mo_roll": prec_3mo,
             "Precip_lag1": lag1, "Precip_lag2": lag2,
         }])
 
@@ -768,17 +690,16 @@ def show_ml_predictor():
         color = RED if prob >= 0.5 else GREEN
         icon  = "🔴" if prob >= 0.5 else "🟢"
         bg_c  = "rgba(61,14,14,0.88)" if prob >= 0.5 else "rgba(10,40,14,0.88)"
-        brd   = RED if prob >= 0.5 else GREEN
 
         st.markdown(f"""
-        <div style="background:{bg_c};border:2px solid {brd};border-radius:12px;
+        <div style="background:{bg_c};border:2px solid {color};border-radius:12px;
                     padding:24px;text-align:center;margin-bottom:16px;
-                    box-shadow:0 0 30px {brd}28;backdrop-filter:blur(14px);">
+                    box-shadow:0 0 30px {color}22;backdrop-filter:blur(14px);">
             <p style="font-size:2.4rem;margin:0;line-height:1">{icon}</p>
             <p style="font-size:1.85rem;font-weight:700;color:{color};margin:8px 0 4px;
                font-family:'Rajdhani',sans-serif;letter-spacing:0.08em;
                filter:drop-shadow(0 0 10px {color});">{label}</p>
-            <p style="font-size:1.0rem;color:#90b0c0;margin:0;font-family:'Share Tech Mono',monospace;">
+            <p style="font-size:1.0rem;color:#90b0c0;margin:0;">
                Flood probability: <b style="color:{color}">{prob:.1%}</b>
             </p>
         </div>""", unsafe_allow_html=True)
@@ -792,11 +713,9 @@ def show_ml_predictor():
                          "tickfont": {"color": "#607080", "size": 11}},
                 "bar":  {"color": color, "thickness": 0.22},
                 "bgcolor": GRID,
-                "steps": [
-                    {"range": [0, 30], "color": "#081e10"},
-                    {"range": [30,60], "color": "#1e1200"},
-                    {"range": [60,100],"color": "#1e0808"},
-                ],
+                "steps": [{"range": [0,30],"color":"#081e10"},
+                           {"range": [30,60],"color":"#1e1200"},
+                           {"range": [60,100],"color":"#1e0808"}],
                 "threshold": {"line": {"color": "rgba(255,255,255,0.6)", "width": 2},
                               "thickness": 0.75, "value": 50},
             },
@@ -804,7 +723,6 @@ def show_ml_predictor():
         fig_g.update_layout(paper_bgcolor="rgba(3,7,18,0.82)", font_color="#c8e0f0",
                             height=230, margin=dict(l=30,r=30,t=30,b=0))
         st.plotly_chart(fig_g, use_container_width=True)
-
         season = "Monsoon" if is_monsoon else "Non-monsoon"
         st.markdown(f"**Month:** {MONTHS[month-1]} ({season}) &nbsp;|&nbsp; "
                     f"**Precip anomaly:** {prec_anom:+.2f} mm/day &nbsp;|&nbsp; "
@@ -812,7 +730,6 @@ def show_ml_predictor():
 
     st.markdown("---")
     section("Feature Importance — What Drives Flood Risk?")
-
     imp = pd.Series(model.feature_importances_, index=FEATS).sort_values()
     bar_colors = [RED if v > imp.quantile(0.75) else BLUE for v in imp.values]
 
@@ -823,14 +740,11 @@ def show_ml_predictor():
         textposition="outside",
         textfont=dict(color="#c8e0f0", size=11),
     ))
-    # Pass BASE_LAYOUT as dict1 to avoid xaxis/yaxis duplicate TypeError
     fig_fi.update_layout(
-        BASE_LAYOUT,
-        height=420,
+        **BASE_LAYOUT, height=420,
         title="Random Forest Feature Importance (Mean Decrease in Impurity)",
-        xaxis_title="Importance Score",
-        xaxis=dict(gridcolor=GRID, linecolor=GRID),
-        yaxis=dict(gridcolor=GRID, linecolor=GRID),
+        xaxis=_ax(title="Importance Score"),
+        yaxis=_ax(),
     )
     st.plotly_chart(fig_fi, use_container_width=True)
 
@@ -851,7 +765,6 @@ def show_ml_predictor():
 
 def show_forecast(master):
     set_page_bg("forecast")
-
     st.title("📈 2024–2050 Climate Forecast")
     st.caption("ARIMA(1,1,1) base forecast with IPCC AR6 RCP 4.5 and RCP 8.5 scenario adjustments")
 
@@ -866,19 +779,15 @@ def show_forecast(master):
 
     section("Bangladesh Temperature 1984–2050: ARIMA + RCP Scenarios")
     fig = go.Figure()
-
     fig.add_trace(go.Scatter(
         x=m.Year, y=m.BGD_Temp_C, name="Observed (1984–2023)",
         mode="lines+markers", line=dict(color=BLUE, width=2.5), marker=dict(size=4),
     ))
-
     ci_x = np.concatenate([fc_yr, fc_yr[::-1]])
     ci_y = np.concatenate([fc_ci[:,0], fc_ci[:,1][::-1]])
     fig.add_trace(go.Scatter(
-        x=ci_x, y=ci_y, fill="toself",
-        fillcolor="rgba(255,167,38,0.10)",
-        line=dict(color="rgba(0,0,0,0)"),
-        name="90% CI (ARIMA base)",
+        x=ci_x, y=ci_y, fill="toself", fillcolor="rgba(255,167,38,0.10)",
+        line=dict(color="rgba(0,0,0,0)"), name="90% CI (ARIMA base)",
     ))
     fig.add_trace(go.Scatter(
         x=fc_yr, y=fc_vals, name="ARIMA base forecast",
@@ -894,14 +803,12 @@ def show_forecast(master):
     ))
     fig.add_vline(x=2023.5, line_color="rgba(128,128,128,0.5)", line_dash="dot",
                   annotation_text="Forecast →", annotation_font_color="#607080")
-
-    fig.update_layout(BASE_LAYOUT, height=460,
+    fig.update_layout(**BASE_LAYOUT, height=460, hovermode="x unified",
                       title="Bangladesh Temperature Forecast with IPCC RCP Scenarios (2024–2050)",
-                      yaxis_title="Temperature (°C)", hovermode="x unified")
+                      xaxis=_ax(), yaxis=_ax(title="Temperature (°C)"))
     st.plotly_chart(fig, use_container_width=True)
 
     col1, col2 = st.columns(2)
-
     with col1:
         section("2050 Scenario Comparison")
         last = m.BGD_Temp_C.iloc[-1]
@@ -925,8 +832,7 @@ def show_forecast(master):
 | BGD adjustment | +0.022°C/yr | +0.048°C/yr |
 | Warming hole | Partial recovery | Full recovery |
 
-*Source: IPCC AR6 WGI (2021)*
-        """)
+*Source: IPCC AR6 WGI (2021)*""")
 
     st.markdown("---")
     section("GDP per Capita at Risk — Climate Damage Projection")
@@ -937,13 +843,12 @@ def show_forecast(master):
         gdp_rate = np.polyfit(gdp_d.Year, np.log(gdp_d.GDP_per_capita_USD), 1)[0]
         last_gdp = float(gdp_d.GDP_per_capita_USD.iloc[-1])
 
-        yr_p = np.arange(2023, 2051)
-        tp   = yr_p - 2023
-        gdp_base = last_gdp * np.exp(gdp_rate * tp)       # 28 values
+        yr_p = np.arange(2023, 2051);  tp = yr_p - 2023
+        gdp_base = last_gdp * np.exp(gdp_rate * tp)          # 28 values
 
         temp_2023 = float(m.BGD_Temp_C.iloc[-1])
-        rcp45_ext = np.concatenate([[temp_2023], rcp45])   # 27→28 values
-        rcp85_ext = np.concatenate([[temp_2023], rcp85])   # 27→28 values
+        rcp45_ext = np.concatenate([[temp_2023], rcp45])      # 27→28
+        rcp85_ext = np.concatenate([[temp_2023], rcp85])      # 27→28
         dmg45 = 1 - 0.005 * np.maximum(0, rcp45_ext - temp_2023)
         dmg85 = 1 - 0.015 * np.maximum(0, rcp85_ext - temp_2023)
         gdp45 = gdp_base * dmg45
@@ -951,9 +856,8 @@ def show_forecast(master):
 
         fig_g = go.Figure()
         fig_g.add_trace(go.Scatter(x=gdp_d.Year, y=gdp_d.GDP_per_capita_USD,
-                                   name="Historical GDP/capita",
-                                   mode="lines+markers", marker=dict(size=4),
-                                   line=dict(color=GREEN, width=2.5)))
+                                   name="Historical GDP/capita", mode="lines+markers",
+                                   marker=dict(size=4), line=dict(color=GREEN, width=2.5)))
         fig_g.add_trace(go.Scatter(x=yr_p, y=gdp_base, name="Baseline (no damage)",
                                    line=dict(color=GREEN, width=2, dash="dash")))
         fig_g.add_trace(go.Scatter(x=yr_p, y=gdp45, name="RCP 4.5 (with damage)",
@@ -961,14 +865,13 @@ def show_forecast(master):
         fig_g.add_trace(go.Scatter(x=yr_p, y=gdp85, name="RCP 8.5 (with damage)",
                                    line=dict(color=RED, width=2.5)))
         fig_g.add_vline(x=2023, line_color="rgba(128,128,128,0.5)", line_dash="dot")
-        fig_g.update_layout(BASE_LAYOUT, height=390,
+        fig_g.update_layout(**BASE_LAYOUT, height=390, hovermode="x unified",
                             title="Bangladesh GDP per Capita Projection Under RCP Scenarios",
-                            yaxis_title="GDP per Capita (USD)", hovermode="x unified")
+                            xaxis=_ax(), yaxis=_ax(title="GDP per Capita (USD)"))
         st.plotly_chart(fig_g, use_container_width=True)
 
         loss45 = (gdp_base[-1] - gdp45[-1]) / gdp_base[-1] * 100
         loss85 = (gdp_base[-1] - gdp85[-1]) / gdp_base[-1] * 100
-
         c1, c2, c3 = st.columns(3)
         with c1: kpi_card("2050 GDP/cap (Baseline)", f"${gdp_base[-1]:,.0f}", GREEN)
         with c2: kpi_card("GDP Loss — RCP 4.5",      f"{loss45:.1f}%",        ORANGE)
@@ -990,13 +893,13 @@ def main():
     giss   = load_giss()
     page, yr_range = sidebar()
 
-    if "Global Overview" in page:
+    if page == "global":
         show_global_overview(master, giss, yr_range)
-    elif "Bangladesh Deep Dive" in page:
+    elif page == "bangladesh":
         show_bangladesh_deep_dive(master, yr_range)
-    elif "ML Flood Risk" in page:
+    elif page == "ml":
         show_ml_predictor()
-    elif "2024" in page:
+    elif page == "forecast":
         show_forecast(master)
 
 
