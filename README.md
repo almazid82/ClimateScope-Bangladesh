@@ -1,6 +1,8 @@
 # ClimateScope Bangladesh & South Asia
 ### Data-Driven Climate Risk Analysis | 1984–2023
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://climatescope-bangladesh-tha93d72fvtx5gfchsmqqx.streamlit.app/)
+
 ![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-Complete-brightgreen?style=flat-square)
