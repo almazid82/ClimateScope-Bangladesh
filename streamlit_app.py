@@ -639,13 +639,16 @@ def show_bangladesh_deep_dive(master, yr_range):
     want = ["BGD_Temp_C","BGD_Precip_mm_day","BGD_Humidity_pct",
             "Annual_Anomaly_C","Sea_Level_mm","GDP_per_capita_USD","CO2_emissions"]
     cols = [c for c in want if c in m.columns]
-    corr = m[cols].corr().round(3)
     labels = {
         "BGD_Temp_C":"BGD Temp","BGD_Precip_mm_day":"Precip","BGD_Humidity_pct":"Humidity",
         "Annual_Anomaly_C":"Global Anom","Sea_Level_mm":"Sea Level",
         "GDP_per_capita_USD":"GDP/cap","CO2_emissions":"CO₂",
     }
     dc = [labels.get(c, c) for c in cols]
+    # Coerce all columns to float before corr() — object-dtype cols (e.g. CO2)
+    # cause pandas _interleave ValueError on Python 3.14
+    corr_data = m[cols].apply(pd.to_numeric, errors="coerce")
+    corr = corr_data.corr().round(3)
     fig4 = go.Figure(go.Heatmap(
         z=corr.values, x=dc, y=dc, colorscale="RdBu_r", zmid=0, zmin=-1, zmax=1,
         text=corr.values.round(2), texttemplate="%{text}", textfont=dict(size=11),
