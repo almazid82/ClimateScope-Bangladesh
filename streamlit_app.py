@@ -3,16 +3,17 @@ ClimateScope Bangladesh & South Asia — Interactive Dashboard
 Author: Shamsul AL Mazid | github.com/almazid82
 """
 
-import streamlit as st
-import pandas as pd
+import base64
+import os
+import warnings
+
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 from sklearn.ensemble import RandomForestClassifier
 from statsmodels.tsa.arima.model import ARIMA
-import warnings
-import os
+import streamlit as st
 
 warnings.filterwarnings("ignore")
 
@@ -24,60 +25,196 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── CUSTOM CSS ────────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-[data-testid="stSidebar"] { background-color: #0d1b2a; }
-[data-testid="stSidebar"] * { color: #c8d8e8 !important; }
-.main { background-color: #0e1117; }
-
-.kpi-box {
-    background: linear-gradient(135deg, #0d2137 0%, #1a3a5c 100%);
-    border: 1px solid #2d6db5;
-    border-radius: 12px;
-    padding: 16px 8px;
-    text-align: center;
-    margin-bottom: 8px;
-}
-.kpi-value { font-size: 1.8rem; font-weight: 700; margin: 0; }
-.kpi-label { font-size: 0.75rem; color: #8db4cc; margin: 4px 0 0 0; }
-.section-hdr {
-    border-left: 4px solid #2d6db5;
-    padding-left: 10px;
-    margin: 20px 0 10px 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-}
-.finding-box {
-    background: #0d2137;
-    border: 1px solid #2d6db5;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin-top: 12px;
-}
-</style>
-""", unsafe_allow_html=True)
-
 # ── COLOUR CONSTANTS ──────────────────────────────────────────────────────────
+CYAN   = "#00f5ff"
 BLUE   = "#4fc3f7"
 RED    = "#ef5350"
-GREEN  = "#66bb6a"
+GREEN  = "#39ff14"
 ORANGE = "#ffa726"
 PURPLE = "#ab47bc"
 TEAL   = "#4dd0e1"
-BG     = "#0e1117"
-GRID   = "#1e2a38"
+BG     = "rgba(3,7,18,0.80)"
+GRID   = "#0d1f35"
 
 BASE_LAYOUT = dict(
-    paper_bgcolor=BG,
-    plot_bgcolor=BG,
-    font=dict(color="#e0e0e0", family="Arial, sans-serif"),
+    paper_bgcolor="rgba(3,7,18,0.80)",
+    plot_bgcolor ="rgba(3,7,18,0.80)",
+    font=dict(color="#c8e0f0", family="'Share Tech Mono', 'Courier New', monospace"),
     xaxis=dict(gridcolor=GRID, linecolor=GRID, zerolinecolor=GRID),
     yaxis=dict(gridcolor=GRID, linecolor=GRID, zerolinecolor=GRID),
     legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor=GRID, borderwidth=1),
     margin=dict(l=55, r=30, t=55, b=45),
-    hoverlabel=dict(bgcolor="#1a2d40", bordercolor=GRID),
+    hoverlabel=dict(bgcolor="#001832", bordercolor=CYAN),
 )
+
+# ── GLOBAL FUI CSS ────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+[data-testid="stAppViewContainer"] {
+    background: #030712;
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(0,40,80,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0,20,60,0.12) 0%, transparent 50%);
+}
+html, body { font-family: 'Rajdhani', sans-serif; }
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, rgba(2,8,22,0.98) 0%, rgba(3,10,25,0.98) 100%) !important;
+    border-right: 1px solid rgba(0,245,255,0.15) !important;
+    box-shadow: 4px 0 40px rgba(0,0,0,0.6) !important;
+}
+[data-testid="stSidebar"] * { color: #a0cce0 !important; }
+[data-testid="stSidebar"] h2 { color: #00f5ff !important; font-size:1.1rem; letter-spacing:0.08em; }
+[data-testid="stSidebar"] strong { color: #c8e8ff !important; }
+[data-testid="stSidebar"] hr { border-color: rgba(0,245,255,0.12) !important; }
+
+section[data-testid="stMain"] .block-container { padding-top: 1.5rem; }
+
+h1 {
+    background: linear-gradient(90deg, #00f5ff 0%, #7ecff7 55%, #e8f4ff 100%);
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    font-size: 2.0rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 0.1rem !important;
+}
+h2, h3 { color: #c8e8ff !important; letter-spacing: 0.04em !important; }
+
+.kpi-box {
+    background: linear-gradient(145deg, rgba(0,18,45,0.82), rgba(0,8,25,0.90));
+    border: 1px solid rgba(0,245,255,0.32);
+    border-radius: 10px;
+    padding: 18px 10px 14px;
+    text-align: center;
+    margin-bottom: 10px;
+    box-shadow: 0 0 28px rgba(0,245,255,0.10), inset 0 0 18px rgba(0,245,255,0.04);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    position: relative;
+    overflow: hidden;
+}
+.kpi-box::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 12%; right: 12%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,245,255,0.65), transparent);
+}
+.kpi-box::after {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 30%; right: 30%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,245,255,0.20), transparent);
+}
+.kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    filter: drop-shadow(0 0 6px currentColor);
+    letter-spacing: 0.02em;
+    font-family: 'Share Tech Mono', monospace;
+}
+.kpi-label {
+    font-size: 0.60rem;
+    color: #6aaccc;
+    margin: 7px 0 0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.section-hdr {
+    border-left: 3px solid #00f5ff;
+    padding-left: 12px;
+    margin: 24px 0 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #b8dff0;
+    text-shadow: 0 0 14px rgba(0,245,255,0.30);
+}
+
+.finding-box {
+    background: rgba(0,18,45,0.78);
+    border: 1px solid rgba(0,245,255,0.22);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-top: 12px;
+    backdrop-filter: blur(10px);
+}
+
+[data-testid="stPlotlyChart"] {
+    border: 1px solid rgba(0,245,255,0.10);
+    border-radius: 10px;
+    background: rgba(3,8,22,0.55);
+    overflow: hidden;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+}
+
+div[data-testid="stAlert"] {
+    background: rgba(0,18,45,0.80) !important;
+    border: 1px solid rgba(0,245,255,0.22) !important;
+    border-radius: 8px !important;
+    backdrop-filter: blur(10px) !important;
+    color: #a8d8f0 !important;
+}
+
+hr { border-color: rgba(0,245,255,0.10) !important; margin: 1.5rem 0 !important; }
+
+details[data-testid="stExpander"] {
+    background: rgba(0,12,35,0.75) !important;
+    border: 1px solid rgba(0,245,255,0.12) !important;
+    border-radius: 8px !important;
+}
+
+label { color: #a0cce0 !important; letter-spacing: 0.04em; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #030712; }
+::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.25); border-radius: 2px; }
+
+[data-testid="stDataFrame"] { border: 1px solid rgba(0,245,255,0.10); border-radius:8px; }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PER-PAGE BACKGROUND INJECTOR
+# ══════════════════════════════════════════════════════════════════════════════
+
+_BG_MAP = {
+    "global":     "assets/bg_global.jpg",
+    "bangladesh": "assets/bg_bangladesh.jpg",
+    "ml":         "assets/bg_ml.jpg",
+    "forecast":   "assets/bg_forecast.jpg",
+}
+
+def set_page_bg(key: str):
+    path = _BG_MAP.get(key, "")
+    if path and os.path.exists(path):
+        with open(path, "rb") as fh:
+            b64 = base64.b64encode(fh.read()).decode()
+        css = f"""<style>
+[data-testid="stAppViewContainer"] {{
+    background-image:
+        linear-gradient(rgba(3,7,18,0.86), rgba(3,7,18,0.92)),
+        url("data:image/jpeg;base64,{b64}");
+    background-size: cover;
+    background-position: center top;
+    background-attachment: fixed;
+}}
+</style>"""
+    else:
+        css = """<style>
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(145deg, #030712 0%, #030e1e 100%);
+}
+</style>"""
+    st.markdown(css, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -111,7 +248,7 @@ def load_giss() -> pd.DataFrame:
     return _synth_giss()
 
 
-# ── Synthetic fallbacks (used only when CSV files are absent) ─────────────────
+# ── Synthetic fallbacks ───────────────────────────────────────────────────────
 
 def _synth_master() -> pd.DataFrame:
     rng = np.random.default_rng(42)
@@ -154,7 +291,7 @@ def _synth_giss() -> pd.DataFrame:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ML MODEL  (trained once, cached for the session)
+# ML MODEL
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_resource(show_spinner=False)
@@ -191,15 +328,15 @@ def get_flood_model():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ARIMA FORECAST  (cached)
+# ARIMA FORECAST
 # ══════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data(show_spinner=False)
 def get_arima_forecast(steps: int = 27):
     temp = load_master().dropna(subset=["BGD_Temp_C"])["BGD_Temp_C"].values
     fit  = ARIMA(temp, order=(1,1,1)).fit()
-    fc   = np.asarray(fit.forecast(steps=steps))          # always ndarray
-    ci   = np.asarray(fit.get_forecast(steps=steps).conf_int(alpha=0.10))  # (steps,2)
+    fc   = np.asarray(fit.forecast(steps=steps))
+    ci   = np.asarray(fit.get_forecast(steps=steps).conf_int(alpha=0.10))
     return np.arange(2024, 2024+steps), fc, ci
 
 
@@ -255,20 +392,28 @@ def sidebar():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_global_overview(master, giss, yr_range):
+    set_page_bg("global")
+
     st.title("🌍 Global Climate Overview")
     st.caption("Bangladesh local temperature vs the global anomaly — 1984 to 2023")
 
     m = master[(master.Year >= yr_range[0]) & (master.Year <= yr_range[1])].copy()
     g = giss[(giss.Year >= yr_range[0]) & (giss.Year <= yr_range[1])].copy()
 
-    # KPI metrics
     m_clean = m.dropna(subset=["BGD_Temp_C"])
     bgd_slope = np.polyfit(m_clean.Year, m_clean.BGD_Temp_C, 1)[0] if len(m_clean) > 1 else 0
     glo_slope = np.polyfit(g.Year, g.Annual_Anomaly_C, 1)[0]       if len(g) > 1       else 0
     divergence = (glo_slope - bgd_slope) * (yr_range[1] - yr_range[0])
 
-    co2_col = m.dropna(subset=["CO2_emissions"])
-    co2_pct = ((co2_col.CO2_emissions.iloc[-1] / co2_col.CO2_emissions.iloc[0]) - 1)*100 if len(co2_col) > 1 else 0
+    # Fix: ensure CO2 column is numeric before arithmetic
+    co2_col = m.copy()
+    co2_col["CO2_emissions"] = pd.to_numeric(co2_col["CO2_emissions"], errors="coerce")
+    co2_col = co2_col.dropna(subset=["CO2_emissions"])
+    if len(co2_col) > 1 and float(co2_col["CO2_emissions"].iloc[0]) != 0:
+        co2_pct = ((float(co2_col["CO2_emissions"].iloc[-1]) /
+                    float(co2_col["CO2_emissions"].iloc[0])) - 1) * 100
+    else:
+        co2_pct = 0.0
 
     c1, c2, c3, c4 = st.columns(4)
     with c1: kpi_card("BGD Warming Rate",    f"{bgd_slope:+.4f}°C/yr", BLUE)
@@ -278,7 +423,6 @@ def show_global_overview(master, giss, yr_range):
 
     st.markdown("---")
 
-    # ── Chart 1: dual-axis temp comparison ───────────────────────────────────
     section("Bangladesh Temperature vs Global Anomaly")
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -320,12 +464,11 @@ def show_global_overview(master, giss, yr_range):
                                   zerolinecolor="gray", zerolinewidth=1))
     st.plotly_chart(fig, use_container_width=True)
 
-    # ── Charts 2 & 3 ─────────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
 
     with col1:
         section("Bangladesh CO₂ Emissions")
-        co2 = m.dropna(subset=["CO2_emissions"])
+        co2 = co2_col
         fig2 = go.Figure()
         fig2.add_trace(go.Bar(x=co2.Year, y=co2.CO2_emissions,
                               marker_color=PURPLE, opacity=0.75, name="CO₂ (kt)"))
@@ -368,12 +511,13 @@ def show_global_overview(master, giss, yr_range):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_bangladesh_deep_dive(master, yr_range):
+    set_page_bg("bangladesh")
+
     st.title("🇧🇩 Bangladesh Climate Deep Dive")
     st.caption("Temperature, precipitation, sea level, GDP and variable correlations")
 
     m = master[(master.Year >= yr_range[0]) & (master.Year <= yr_range[1])].copy()
 
-    # KPI row
     sl  = m.dropna(subset=["Sea_Level_mm"])
     gdp = m.dropna(subset=["GDP_per_capita_USD"])
     sl_change  = sl.Sea_Level_mm.iloc[-1]  - sl.Sea_Level_mm.iloc[0]  if len(sl)  > 1 else 0
@@ -387,7 +531,6 @@ def show_bangladesh_deep_dive(master, yr_range):
 
     st.markdown("---")
 
-    # ── Chart 1: temp + precip dual axis ─────────────────────────────────────
     section("Annual Temperature & Precipitation")
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(go.Scatter(
@@ -411,11 +554,10 @@ def show_bangladesh_deep_dive(master, yr_range):
     col1, col2 = st.columns(2)
 
     with col1:
-        # ── Sea level ────────────────────────────────────────────────────────
         section("Sea Level Rise Trend")
         sl_d = m.dropna(subset=["Sea_Level_mm"])
         if len(sl_d) > 1:
-            z = np.polyfit(sl_d.Year, sl_d.Sea_Level_mm, 1)
+            z  = np.polyfit(sl_d.Year, sl_d.Sea_Level_mm, 1)
             z2 = np.polyfit(sl_d.Year, sl_d.Sea_Level_mm, 2)
             yr_fit = np.linspace(sl_d.Year.min(), sl_d.Year.max(), 100)
             fig2 = go.Figure()
@@ -438,7 +580,6 @@ def show_bangladesh_deep_dive(master, yr_range):
             st.plotly_chart(fig2, use_container_width=True)
 
     with col2:
-        # ── GDP growth ───────────────────────────────────────────────────────
         section("GDP per Capita Growth")
         gdp_d = m.dropna(subset=["GDP_per_capita_USD"])
         if len(gdp_d) > 1:
@@ -447,12 +588,11 @@ def show_bangladesh_deep_dive(master, yr_range):
                 x=gdp_d.Year, y=gdp_d.GDP_per_capita_USD,
                 name="GDP/capita (USD)", mode="lines+markers",
                 line=dict(color=GREEN, width=2.5),
-                fill="tozeroy", fillcolor="rgba(102,187,106,0.10)",
+                fill="tozeroy", fillcolor="rgba(57,255,20,0.08)",
             ))
             fig3.update_layout(**BASE_LAYOUT, height=330, yaxis_title="USD")
             st.plotly_chart(fig3, use_container_width=True)
 
-    # ── Correlation heatmap ───────────────────────────────────────────────────
     section("Variable Correlation Heatmap")
     want = ["BGD_Temp_C","BGD_Precip_mm_day","BGD_Humidity_pct",
             "Annual_Anomaly_C","Sea_Level_mm","GDP_per_capita_USD","CO2_emissions"]
@@ -488,6 +628,8 @@ def show_bangladesh_deep_dive(master, yr_range):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_ml_predictor():
+    set_page_bg("ml")
+
     st.title("🤖 ML Flood Risk Predictor")
     st.caption("Random Forest (300 trees) trained on 480 months of NASA POWER data — Accuracy 95.8% · AUC 0.9947")
 
@@ -509,7 +651,6 @@ def show_ml_predictor():
         lag1  = st.slider("Last month precip (mm/day)",  0.0, 20.0,  6.0, 0.1)
         lag2  = st.slider("2 months ago precip (mm/day)",0.0, 20.0,  4.0, 0.1)
 
-        # Derived features using reference dataset climatology
         is_monsoon   = int(month in [6,7,8,9])
         prec_3mo     = (prec + lag1 + lag2) / 3
         prec_6mo     = prec_3mo
@@ -539,25 +680,27 @@ def show_ml_predictor():
         label = "HIGH RISK" if prob >= 0.5 else "LOW RISK"
         color = RED if prob >= 0.5 else GREEN
         icon  = "🔴" if prob >= 0.5 else "🟢"
-        bg_c  = "#3d1010" if prob >= 0.5 else "#0d2e0d"
-        brd   = "#5c1010" if prob >= 0.5 else "#1a4d1a"
+        bg_c  = "rgba(61,16,16,0.85)"  if prob >= 0.5 else "rgba(13,46,13,0.85)"
+        brd   = RED if prob >= 0.5 else GREEN
 
         st.markdown(f"""
-        <div style="background:linear-gradient(135deg,{bg_c},{brd});
-                    border:2px solid {color};border-radius:14px;
-                    padding:24px;text-align:center;margin-bottom:16px">
+        <div style="background:{bg_c};
+                    border:2px solid {brd};border-radius:14px;
+                    padding:24px;text-align:center;margin-bottom:16px;
+                    box-shadow:0 0 30px {brd}33;
+                    backdrop-filter:blur(12px);">
             <p style="font-size:2.6rem;margin:0">{icon}</p>
-            <p style="font-size:1.9rem;font-weight:700;color:{color};margin:6px 0">{label}</p>
+            <p style="font-size:1.9rem;font-weight:700;color:{color};margin:6px 0;
+               filter:drop-shadow(0 0 10px {color});">{label}</p>
             <p style="font-size:1.05rem;color:#ccc;margin:0">
                 Flood probability: <b style="color:{color}">{prob:.1%}</b>
             </p>
         </div>""", unsafe_allow_html=True)
 
-        # Gauge chart
         fig_g = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob * 100,
-            title={"text": "Risk Score", "font": {"color": "#e0e0e0", "size": 14}},
+            title={"text": "Risk Score", "font": {"color": "#c8e0f0", "size": 14}},
             number={"suffix": "%", "font": {"color": color, "size": 30}},
             gauge={
                 "axis": {"range": [0,100], "tickcolor": "#aaa",
@@ -565,9 +708,9 @@ def show_ml_predictor():
                 "bar":  {"color": color, "thickness": 0.25},
                 "bgcolor": GRID,
                 "steps": [
-                    {"range": [0, 30], "color": "#1b4332"},
-                    {"range": [30,60], "color": "#7d4f00"},
-                    {"range": [60,100],"color": "#4a0e0e"},
+                    {"range": [0, 30], "color": "#0d2e18"},
+                    {"range": [30,60], "color": "#2e1f00"},
+                    {"range": [60,100],"color": "#2e0a0a"},
                 ],
                 "threshold": {
                     "line": {"color": "white", "width": 3},
@@ -576,17 +719,15 @@ def show_ml_predictor():
                 },
             },
         ))
-        fig_g.update_layout(paper_bgcolor=BG, font_color="#e0e0e0",
+        fig_g.update_layout(paper_bgcolor="rgba(3,7,18,0.80)", font_color="#c8e0f0",
                             height=230, margin=dict(l=30,r=30,t=30,b=0))
         st.plotly_chart(fig_g, use_container_width=True)
 
-        # Context
         season = "Monsoon" if is_monsoon else "Non-monsoon"
         st.markdown(f"**Month:** {MONTHS[month-1]} ({season}) &nbsp;|&nbsp; "
                     f"**Precip anomaly:** {prec_anom:+.2f} mm/day &nbsp;|&nbsp; "
                     f"**3-mo rolling:** {prec_3mo:.2f} mm/day")
 
-    # ── Feature importance bar chart ──────────────────────────────────────────
     st.markdown("---")
     section("Feature Importance — What Drives Flood Risk?")
 
@@ -598,7 +739,7 @@ def show_ml_predictor():
         marker_color=bar_colors,
         text=[f"{v:.3f}" for v in imp.values],
         textposition="outside",
-        textfont=dict(color="#e0e0e0", size=11),
+        textfont=dict(color="#c8e0f0", size=11),
     ))
     fig_fi.update_layout(
         **BASE_LAYOUT, height=420,
@@ -626,6 +767,8 @@ def show_ml_predictor():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def show_forecast(master):
+    set_page_bg("forecast")
+
     st.title("📈 2024–2050 Climate Forecast")
     st.caption("ARIMA(1,1,1) base forecast with IPCC AR6 RCP 4.5 and RCP 8.5 scenario adjustments")
 
@@ -634,22 +777,18 @@ def show_forecast(master):
     with st.spinner("Fitting ARIMA model..."):
         fc_yr, fc_vals, fc_ci = get_arima_forecast(steps=27)
 
-    # RCP scenario temperature adjustments (annual increment above ARIMA base)
     t = np.arange(len(fc_yr))
-    rcp45 = fc_vals + 0.022 * t   # moderate: aerosol reduction + CO₂ effect
-    rcp85 = fc_vals + 0.048 * t   # high emissions: rapid warming hole recovery
+    rcp45 = fc_vals + 0.022 * t
+    rcp85 = fc_vals + 0.048 * t
 
-    # ── Main forecast chart ───────────────────────────────────────────────────
     section("Bangladesh Temperature 1984–2050: ARIMA + RCP Scenarios")
     fig = go.Figure()
 
-    # Historical observed
     fig.add_trace(go.Scatter(
         x=m.Year, y=m.BGD_Temp_C, name="Observed (1984–2023)",
         mode="lines+markers", line=dict(color=BLUE, width=2.5), marker=dict(size=4),
     ))
 
-    # Confidence interval band  (fc_ci is ndarray shape (steps,2))
     ci_x = np.concatenate([fc_yr, fc_yr[::-1]])
     ci_y = np.concatenate([fc_ci[:,0], fc_ci[:,1][::-1]])
     fig.add_trace(go.Scatter(
@@ -659,19 +798,14 @@ def show_forecast(master):
         name="90% CI (ARIMA base)", showlegend=True,
     ))
 
-    # ARIMA base forecast
     fig.add_trace(go.Scatter(
         x=fc_yr, y=fc_vals, name="ARIMA base forecast",
         mode="lines", line=dict(color=ORANGE, width=2.5, dash="dash"),
     ))
-
-    # RCP 4.5
     fig.add_trace(go.Scatter(
         x=fc_yr, y=rcp45, name="RCP 4.5 (moderate emissions)",
         mode="lines", line=dict(color=GREEN, width=2.5),
     ))
-
-    # RCP 8.5
     fig.add_trace(go.Scatter(
         x=fc_yr, y=rcp85, name="RCP 8.5 (high emissions)",
         mode="lines", line=dict(color=RED, width=2.5),
@@ -685,7 +819,6 @@ def show_forecast(master):
                       yaxis_title="Temperature (°C)", hovermode="x unified")
     st.plotly_chart(fig, use_container_width=True)
 
-    # ── Scenario table + assumptions ──────────────────────────────────────────
     col1, col2 = st.columns(2)
 
     with col1:
@@ -715,7 +848,6 @@ def show_forecast(master):
 *Source: IPCC AR6 WGI (2021), South Asia projections*
         """)
 
-    # ── GDP at-risk projection ────────────────────────────────────────────────
     st.markdown("---")
     section("GDP per Capita at Risk — Climate Damage Projection")
     st.caption("Simplified DICE-model damage function applied to temperature deviations above 2023 baseline")
@@ -723,16 +855,19 @@ def show_forecast(master):
     gdp_d = master.dropna(subset=["GDP_per_capita_USD"])
     if len(gdp_d) > 1:
         gdp_rate = np.polyfit(gdp_d.Year, np.log(gdp_d.GDP_per_capita_USD), 1)[0]
-        last_gdp = gdp_d.GDP_per_capita_USD.iloc[-1]
-        yr_p = np.arange(2023, 2051);  tp = yr_p - 2023
+        last_gdp = float(gdp_d.GDP_per_capita_USD.iloc[-1])
 
+        # yr_p: 2023..2050 → 28 values; rcp45/rcp85: 2024..2050 → 27 values
+        # Extend RCP arrays by prepending 2023 baseline so shapes align (28 × 28)
+        yr_p = np.arange(2023, 2051)
+        tp   = yr_p - 2023
         gdp_base = last_gdp * np.exp(gdp_rate * tp)
 
-        temp_2023 = m.BGD_Temp_C.iloc[-1]
-        # damage = % GDP loss per 1°C warming above 2023
-        dmg45 = 1 - 0.005 * np.maximum(0, rcp45 - temp_2023)
-        dmg85 = 1 - 0.015 * np.maximum(0, rcp85 - temp_2023)
-
+        temp_2023 = float(m.BGD_Temp_C.iloc[-1])
+        rcp45_ext = np.concatenate([[temp_2023], rcp45])
+        rcp85_ext = np.concatenate([[temp_2023], rcp85])
+        dmg45 = 1 - 0.005 * np.maximum(0, rcp45_ext - temp_2023)
+        dmg85 = 1 - 0.015 * np.maximum(0, rcp85_ext - temp_2023)
         gdp45 = gdp_base * dmg45
         gdp85 = gdp_base * dmg85
 
