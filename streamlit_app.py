@@ -198,9 +198,9 @@ def get_flood_model():
 def get_arima_forecast(steps: int = 27):
     temp = load_master().dropna(subset=["BGD_Temp_C"])["BGD_Temp_C"].values
     fit  = ARIMA(temp, order=(1,1,1)).fit()
-    fc   = fit.forecast(steps=steps)
-    ci   = fit.get_forecast(steps=steps).conf_int(alpha=0.10)
-    return np.arange(2024, 2024+steps), fc.values, ci
+    fc   = np.asarray(fit.forecast(steps=steps))          # always ndarray
+    ci   = np.asarray(fit.get_forecast(steps=steps).conf_int(alpha=0.10))  # (steps,2)
+    return np.arange(2024, 2024+steps), fc, ci
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -310,11 +310,14 @@ def show_global_overview(master, giss, yr_range):
             line=dict(color=RED, width=1.5, dash="dash"),
         ), secondary_y=True)
 
-    fig.add_hline(y=0, line_color="gray", line_dash="dot", secondary_y=True)
     fig.update_layout(**BASE_LAYOUT, height=430, hovermode="x unified",
-                      title="The South Asian Warming Hole: Bangladesh Cools While the World Warms")
-    fig.update_yaxes(title_text="Bangladesh Temp (°C)",       secondary_y=False, color=BLUE)
-    fig.update_yaxes(title_text="Global Temp Anomaly (°C)",   secondary_y=True,  color=RED)
+                      title="The South Asian Warming Hole: Bangladesh Cools While the World Warms",
+                      yaxis=dict(title="Bangladesh Temp (°C)", gridcolor=GRID,
+                                 titlefont=dict(color=BLUE), tickfont=dict(color=BLUE)),
+                      yaxis2=dict(title="Global Temp Anomaly (°C)", gridcolor=GRID,
+                                  titlefont=dict(color=RED), tickfont=dict(color=RED),
+                                  overlaying="y", side="right", zeroline=True,
+                                  zerolinecolor="gray", zerolinewidth=1))
     st.plotly_chart(fig, use_container_width=True)
 
     # ── Charts 2 & 3 ─────────────────────────────────────────────────────────
@@ -646,9 +649,9 @@ def show_forecast(master):
         mode="lines+markers", line=dict(color=BLUE, width=2.5), marker=dict(size=4),
     ))
 
-    # Confidence interval band
+    # Confidence interval band  (fc_ci is ndarray shape (steps,2))
     ci_x = np.concatenate([fc_yr, fc_yr[::-1]])
-    ci_y = np.concatenate([fc_ci.iloc[:,0].values, fc_ci.iloc[:,1].values[::-1]])
+    ci_y = np.concatenate([fc_ci[:,0], fc_ci[:,1][::-1]])
     fig.add_trace(go.Scatter(
         x=ci_x, y=ci_y, fill="toself",
         fillcolor="rgba(255,167,38,0.12)",
